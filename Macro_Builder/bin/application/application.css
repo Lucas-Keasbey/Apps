@@ -1,0 +1,24 @@
+.root {
+	-fx-padding: 10px;
+}
+
+Spinner {
+	-fx-pref-width: 50px;
+}
+
+GridPane {
+	-fx-padding: 10px;
+	-fx-hgap:10px;
+	-fx-vgap:10px;
+	-fx-alignment: top-center;
+}
+
+HBox {
+	-fx-alignment: top-center;
+	-fx-spacing: 2px;
+}
+
+VBox {
+	-fx-spacing: 2px;
+}
+
