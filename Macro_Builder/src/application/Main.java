@@ -13,18 +13,47 @@ import javafx.scene.control.Label;
 //import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
-//import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.Pane;
 
 public class Main extends Application {
+	/* TODO 
+	 * 	add weapon attack tab
+	 */
+	
+	static String[] profList = {"0[Untrained]", "2[Trained]", "4[Expert]", "6[Master]", "8[Legendary]"};
+	static String[] statList = {"STR", "DEX", "CON", "INT", "WIS", "CHA"};
+	static String[] diceList = {"d4", "d6", "d8", "d10", "d12", "d20"};
+	TabPane tabPane = new TabPane();
+	
+	TextField txfName = new TextField("name");
+	Spinner<Integer> spnStr = new Spinner<>(-5, 7, 0);
+	Spinner<Integer> spnDex = new Spinner<>(-5, 7, 0);
+	Spinner<Integer> spnCon = new Spinner<>(-5, 7, 0);
+	Spinner<Integer> spnInt = new Spinner<>(-5, 7, 0);
+	Spinner<Integer> spnWis = new Spinner<>(-5, 7, 0);
+	Spinner<Integer> spnCha = new Spinner<>(-5, 7, 0);
+	
+	ComboBox<String> cbArmorProf = new ComboBox<>();
+	ComboBox<String> cbFortProf = new ComboBox<>();
+	ComboBox<String> cbRefProf = new ComboBox<>();
+	ComboBox<String> cbWillProf = new ComboBox<>();
+	
+	Spinner<Integer> spnACBon = new Spinner<>(0, 10, 0);
+	Spinner<Integer> spnMaxDex = new Spinner<>(0, 7, 0);
+	Spinner<Integer> spnSaveBon = new Spinner<>(0, 10, 0);
+	
+	
 	TextField txfSpellName = new TextField("Spell");
-	TextField txfCastStat = new TextField("4");
+	ComboBox<String> cbCastStat = new ComboBox<>();
 	TextField txfDamage = new TextField("Fire");
 	TextField txfCritSuc = new TextField();
 	TextField txfSuc = new TextField();
@@ -41,20 +70,23 @@ public class Main extends Application {
 	RadioButton rbWill = new RadioButton("Will");
 	ToggleGroup tgpSave = new ToggleGroup();
 	
-	ComboBox<String> cbProf = new ComboBox<>();
+	ComboBox<String> cbSpellProf = new ComboBox<>();
+	
 	Spinner<Integer> spnLevel = new Spinner<>(1, 20, 1);
-	Spinner<Integer> spnDice = new Spinner<>(0, 20, 1);
+	Spinner<Integer> spnDice = new Spinner<>(0, 20, 0);
 	ComboBox<String> cbDice = new ComboBox<>();
 	
-	TextArea txaDisplay = new TextArea();
-	Button btnGenerate = new Button("Generate");
-	Button btnClear = new Button("Clear");
+	TextArea txaDefDisplay = new TextArea();
+	TextArea txaSpellDisplay = new TextArea();
+	Button btnDefGenerate = new Button("Generate");
+	Button btnSpellGenerate = new Button("Generate");
+	Button btnSpellClear = new Button("Clear");
 	
 	@Override
 	public void start(Stage primaryStage) {
 		try {
 			Pane root = buildGui();
-			Scene scene = new Scene(root,500,400);
+			Scene scene = new Scene(root,500,500);
 			scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 			primaryStage.setScene(scene);
 			primaryStage.show();
@@ -64,49 +96,156 @@ public class Main extends Application {
 	}
 	
 	private Pane buildGui() {
+		Pane pan = buildTabPane();
+		return pan;
+	}
+	
+	private Pane buildTabPane() {
+		BorderPane brdPane = new BorderPane();
+		tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+		// Build Tab 1
+		Tab tab1 = new Tab();
+		tab1.setText("Character");
+		tab1.setContent(buildCharacterPane());
+		// Build Tab 2
+		Tab tab2 = new Tab();
+		tab2.setText("Spells");
+		tab2.setContent(buildSpellPane());
+		// Add tabs to TabPane
+		tabPane.getTabs().addAll(tab1, tab2);
+		// Add TabPane to BorderPane
+		brdPane.setCenter(tabPane);
+		return brdPane;
+	}
+	
+	private Pane buildCharacterPane() {
 		GridPane gp = new GridPane();
 		gp.add(buildNameBox(), 0, 0);
+		gp.add(buildStatBox(), 1, 0);
+		gp.add(buildArmorBox(), 0, 1);
+		gp.add(buildSaveProfBox(), 1, 1);
+		txaDefDisplay.setWrapText(true);
+		txaDefDisplay.setEditable(false);
+		gp.add(txaDefDisplay, 0, 3, 2, 1);
+		gp.add(buildCharButtonBox(), 1, 2);
+		return gp;
+	}
+	
+	private Pane buildNameBox() {
+		VBox col = new VBox();
+		col.getChildren().addAll(buildNameRow(), buildLevelRow());
+		return col;
+	}
+	
+	private Pane buildNameRow() {
+		HBox row = new HBox();
+		row.getChildren().addAll(new Label("Name:"), txfName);
+		return row;
+	}
+	
+	private Pane buildStatBox() {
+		GridPane gp = new GridPane();
+		gp.add(new Label("STR"), 0, 0);
+		gp.add(new Label("DEX"), 0, 1);
+		gp.add(new Label("CON"), 0, 2);
+		gp.add(new Label("INT"), 2, 0);
+		gp.add(new Label("WIS"), 2, 1);
+		gp.add(new Label("CHA"), 2, 2);
+		gp.add(spnStr, 1, 0);
+		gp.add(spnDex, 1, 1);
+		gp.add(spnCon, 1, 2);
+		gp.add(spnInt, 3, 0);
+		gp.add(spnWis, 3, 1);
+		gp.add(spnCha, 3, 2);
+		return gp;
+	}
+	
+	private Pane buildArmorBox() {
+		GridPane gp = new GridPane();
+		cbArmorProf.getItems().addAll(profList);
+		cbArmorProf.setValue(profList[1]);
+		gp.add(new Label("Armor Prof"), 0, 0);
+		gp.add(cbArmorProf, 1, 0);
+		gp.add(new Label("AC Bonus"), 0, 1);
+		gp.add(spnACBon, 1, 1);
+		gp.add(new Label("Max Dex"), 0, 2);
+		gp.add(spnMaxDex, 1, 2);
+		gp.add(new Label("Save Bonus"), 0, 3);
+		gp.add(spnSaveBon, 1, 3);
+		return gp;
+	}
+	
+	private Pane buildSaveProfBox() {
+		GridPane gp = new GridPane();
+		gp.add(new Label("Fort"), 0, 0);
+		gp.add(new Label("Reflex"), 0, 1);
+		gp.add(new Label("Will"), 0, 2);
+		cbFortProf.getItems().addAll(profList);
+		cbFortProf.setValue(profList[1]);
+		cbRefProf.getItems().addAll(profList);
+		cbRefProf.setValue(profList[1]);
+		cbWillProf.getItems().addAll(profList);
+		cbWillProf.setValue(profList[1]);
+		gp.add(cbFortProf, 1, 0);
+		gp.add(cbRefProf, 1, 1);
+		gp.add(cbWillProf, 1, 2);
+		return gp;
+	}
+	
+	private Pane buildCharButtonBox() {
+		HBox row = new HBox();
+		btnDefGenerate.setOnAction(new GenerateDefButtonEventHandler() );
+		row.getChildren().addAll(btnDefGenerate);
+		return row;
+	}
+	
+	private Pane buildSpellPane() {
+		GridPane gp = new GridPane();
+		gp.add(buildSpellNameBox(), 0, 0);
 		gp.add(buildNumbersBox(), 0, 1);
 		gp.add(buildDamageBox(), 0, 2);
-		gp.add(buildRbBox(), 1, 0);
+		gp.add(buildRadioBox(), 1, 0);
 		gp.add(buildButtonBox(), 1, 3);
-		txaDisplay.setWrapText(true);
-		txaDisplay.setEditable(false);
-		gp.add(txaDisplay, 0, 4);
-		GridPane.setColumnSpan(txaDisplay, 2);
+		txaSpellDisplay.setWrapText(true);
+		txaSpellDisplay.setEditable(false);
+		gp.add(txaSpellDisplay, 0, 4);
+		GridPane.setColumnSpan(txaSpellDisplay, 2);
 		Pane succBox = buildSuccBox();
 		gp.add(succBox, 1, 1);
 		GridPane.setRowSpan(succBox, 2);
 		return gp;
 	}
 	
-	private Pane buildNameBox() {
+	private Pane buildSpellNameBox() {
 		VBox col = new VBox();
-		col.getChildren().addAll(buildNameRow(), buildModRow());
+		col.getChildren().addAll(buildSpellNameRow(), buildModRow());
 		return col;
 	}
 	
-	private Pane buildNameRow() {
+	private Pane buildSpellNameRow() {
 		HBox row = new HBox();
 		row.getChildren().addAll(new Label("Spell Name:"), txfSpellName);
 		return row;
 	}
+	
 	private Pane buildNumbersBox() {
 		VBox col = new VBox();
-		col.getChildren().addAll(buildProficiencyRow(), buildLevelRow());
+		col.getChildren().addAll(buildProficiencyRow());
 		return col;
 	}
 	
 	private Pane buildModRow() {
 		HBox row = new HBox();
-		row.getChildren().addAll(new Label("Stat Mod:"), txfCastStat);
+		cbCastStat.getItems().addAll(statList);
+		cbCastStat.setValue(statList[3]);
+		row.getChildren().addAll(new Label("Stat Mod:"), cbCastStat);
 		return row;
 	}
 	private Pane buildProficiencyRow() {
 		HBox row = new HBox();
-		cbProf.getItems().addAll("2[Trained]", "4[Expert]", "6[Master]", "8[Legendary]");
-		cbProf.setValue("2[Trained]");
-		row.getChildren().addAll(new Label("Proficiency:"), cbProf);
+		cbSpellProf.getItems().addAll(profList);
+		cbSpellProf.setValue(profList[1]);
+		row.getChildren().addAll(new Label("Proficiency:"), cbSpellProf);
 		return row;
 	}
 	private Pane buildLevelRow() {
@@ -117,13 +256,13 @@ public class Main extends Application {
 	
 	private Pane buildButtonBox() {
 		HBox row = new HBox();
-		btnGenerate.setOnAction(new GenerateButtonEventHandler() );
-		btnClear.setOnAction(new ClearButtonEventHandler() );
-		row.getChildren().addAll(btnGenerate, btnClear);
+		btnSpellGenerate.setOnAction(new GenerateSpellButtonEventHandler() );
+		btnSpellClear.setOnAction(new ClearButtonEventHandler() );
+		row.getChildren().addAll(btnSpellGenerate, btnSpellClear);
 		return row;
 	}
 	
-	private Pane buildRbBox() {
+	private Pane buildRadioBox() {
 		HBox row = new HBox();
 		row.getChildren().addAll(buildTypeBox(), buildSaveBox());
 		row.setAlignment(Pos.BASELINE_LEFT);
@@ -153,7 +292,7 @@ public class Main extends Application {
 	private Pane buildDamageBox() {
 		VBox col = new VBox();
 		HBox row = new HBox();
-		cbDice.getItems().addAll("d4", "d6", "d8", "d10", "d12", "d20");
+		cbDice.getItems().addAll(diceList);
 		cbDice.setValue("d4");
 		row.getChildren().addAll(new Label("Damage:"), spnDice, cbDice);
 		col.getChildren().addAll(row, buildDTypeBox());
@@ -183,11 +322,66 @@ public class Main extends Application {
 		launch(args);
 	}
 	
-	private class GenerateButtonEventHandler implements EventHandler<ActionEvent> {
+	private class GenerateDefButtonEventHandler implements EventHandler<ActionEvent> {
+		
+		@Override
+		public void handle(ActionEvent event) {
+			
+			String msg = "/me braces themself\n" + 
+					"&{template:default} {{name= defences}} ";
+			msg += acString() + saveString();
+			txaDefDisplay.setText(msg);
+		}
+		
+		private String acString() {
+			String msg = "{{AC = [[10";
+			String prof = cbArmorProf.getValue();
+			int lvl = spnLevel.getValue();
+			int bonus = spnACBon.getValue();
+			int acDex = Math.min(spnDex.getValue(), spnMaxDex.getValue());
+			msg += " + " + lvl + "[level]";
+			msg += " + " + prof;
+			msg += " + " + bonus + "[Item]";
+			msg += " + " + acDex + "[Dex]";
+			msg += " + ?{Shield|0}[Shield]";
+			
+			return msg + "]] }}";
+		}
+		
+		private String saveString() {
+			int bonus = spnSaveBon.getValue();
+			int con = spnCon.getValue();
+			int dex = spnDex.getValue();
+			int wis = spnWis.getValue();
+			int lvl = spnLevel.getValue();
+			String msg = "{{Fort = [[1d20";
+			msg += " + " + lvl + "[level]";
+			msg += " + " + cbFortProf.getValue();
+			msg += " + " + con + "[Con]";
+			msg += " + " + bonus + "[Item]";
+			
+			msg += "]] }}{{Reflex = [[1d20";
+			msg += " + " + lvl + "[level]";
+			msg += " + " + cbRefProf.getValue();
+			msg += " + " + dex + "[Dex]";
+			msg += " + " + bonus + "[Item]";
+			
+			msg += "]] }}{{Will = [[1d20";
+			msg += " + " + lvl + "[level]";
+			msg += " + " + cbWillProf.getValue();
+			msg += " + " + wis + "[Wis]";
+			msg += " + " + bonus + "[Item]";
+			
+			return msg + "]] }}";
+		}
+	}
+	
+	private class GenerateSpellButtonEventHandler implements EventHandler<ActionEvent> {
 
 		@Override
 		public void handle(ActionEvent event) {
 			String name = txfSpellName.getText();
+			String stat = cbCastStat.getValue();
 			String type = ((RadioButton)tgpAtkSv.getSelectedToggle()).getText();
 			String critSucc = txfCritSuc.getText();
 			String succ = txfSuc.getText();
@@ -196,9 +390,9 @@ public class Main extends Application {
 			String msg = "/me casts " + name + "\n" + 
 					"&{template:default} {{name=" + name + "}} ";
 			switch (type) {
-			case "Attack"	: msg += attackStr(); break;
-			case "Save"		: msg += saveStr(); break;
-			case "Both"		: msg += attackStr() + saveStr(); break;
+			case "Attack"	: msg += attackStr(stat); break;
+			case "Save"		: msg += saveStr(stat); break;
+			case "Both"		: msg += attackStr(stat) + saveStr(stat); break;
 			}
 			if (spnDice.getValue()>0) {
 				msg += damageStr();
@@ -216,25 +410,22 @@ public class Main extends Application {
 				msg += "{{Crit Fail = " + critFail + " }} ";
 			}
 
-//			"{{ Damage = [[1d6]] Fire }}  
-//			{{ Crit = Double Damage, Dazzled for [[1]] Minute }} 
-//			{{Hit = Dazzled for [[1]] Round}}");
-			txaDisplay.setText(msg);
+			txaSpellDisplay.setText(msg);
 		}
 		
-		private String attackStr() {
+		private String attackStr(String stat) {
 			String msg = "{{Attack = [[1d20 + ";
-			msg += txfCastStat.getText() + "[Stat] + ";
+			msg += statMod(stat) + "[" + stat + "] + ";
 			msg += spnLevel.getValue().toString() + "[Level] +";
-			msg += cbProf.getValue();
+			msg += cbSpellProf.getValue();
 			return msg + " ]] }} ";
 		}
 		
-		private String saveStr() {
+		private String saveStr(String stat) {
 			String msg = "{{Save = [[10 + ";
-			msg += txfCastStat.getText() + "[Stat] + ";
+			msg += statMod(stat) + "[" + stat + "] + ";
 			msg += spnLevel.getValue().toString() + "[Level] +";
-			msg += cbProf.getValue() + " ]] ";
+			msg += cbSpellProf.getValue() + " ]] ";
 			msg += ((RadioButton)tgpSave.getSelectedToggle()).getText() + " }} ";
 			return msg;
 		}
@@ -245,6 +436,18 @@ public class Main extends Application {
 			msg += txfDamage.getText() + " }} ";
 			return msg;
 		}
+		
+		private String statMod(String stat) {
+			switch (stat) {
+			case "STR": return spnStr.getValue().toString();
+			case "DEX": return spnDex.getValue().toString();
+			case "CON": return spnCon.getValue().toString();
+			case "INT": return spnInt.getValue().toString();
+			case "WIS": return spnWis.getValue().toString();
+			case "CHA": return spnCha.getValue().toString();
+			}
+			return null;
+		}
 			
 	}
 	
@@ -253,7 +456,11 @@ public class Main extends Application {
 		@Override
 		public void handle(ActionEvent event) {
 			txfSpellName.setText("Spell");
-			txaDisplay.clear();
+			txaSpellDisplay.clear();
+			txfCritSuc.clear();
+			txfSuc.clear();
+			txfFail.clear();
+			txfCritFail.clear();
 		}
 			
 	}
