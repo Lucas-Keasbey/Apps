@@ -123,8 +123,11 @@ public class Main extends Application {
 	private Pane buildCharacterPane() {
 		GridPane gp = new GridPane();
 		gp.add(buildNameBox(), 0, 0);
-		gp.add(buildStatBox(), 1, 0, 1, 2);
+		gp.add(buildStatBox(), 1, 0);
 		gp.add(buildArmorBox(), 0, 1);
+		gp.add(buildSaveProfBox(), 1, 1);
+		txaDefDisplay.setWrapText(true);
+		txaDefDisplay.setEditable(false);
 		gp.add(txaDefDisplay, 0, 3, 2, 1);
 		gp.add(buildCharButtonBox(), 1, 2);
 		return gp;
@@ -147,15 +150,15 @@ public class Main extends Application {
 		gp.add(new Label("STR"), 0, 0);
 		gp.add(new Label("DEX"), 0, 1);
 		gp.add(new Label("CON"), 0, 2);
-		gp.add(new Label("INT"), 0, 3);
-		gp.add(new Label("WIS"), 0, 4);
-		gp.add(new Label("CHA"), 0, 5);
+		gp.add(new Label("INT"), 2, 0);
+		gp.add(new Label("WIS"), 2, 1);
+		gp.add(new Label("CHA"), 2, 2);
 		gp.add(spnStr, 1, 0);
 		gp.add(spnDex, 1, 1);
 		gp.add(spnCon, 1, 2);
-		gp.add(spnInt, 1, 3);
-		gp.add(spnWis, 1, 4);
-		gp.add(spnCha, 1, 5);
+		gp.add(spnInt, 3, 0);
+		gp.add(spnWis, 3, 1);
+		gp.add(spnCha, 3, 2);
 		return gp;
 	}
 	
@@ -171,6 +174,23 @@ public class Main extends Application {
 		gp.add(spnMaxDex, 1, 2);
 		gp.add(new Label("Save Bonus"), 0, 3);
 		gp.add(spnSaveBon, 1, 3);
+		return gp;
+	}
+	
+	private Pane buildSaveProfBox() {
+		GridPane gp = new GridPane();
+		gp.add(new Label("Fort"), 0, 0);
+		gp.add(new Label("Reflex"), 0, 1);
+		gp.add(new Label("Will"), 0, 2);
+		cbFortProf.getItems().addAll(profList);
+		cbFortProf.setValue(profList[1]);
+		cbRefProf.getItems().addAll(profList);
+		cbRefProf.setValue(profList[1]);
+		cbWillProf.getItems().addAll(profList);
+		cbWillProf.setValue(profList[1]);
+		gp.add(cbFortProf, 1, 0);
+		gp.add(cbRefProf, 1, 1);
+		gp.add(cbWillProf, 1, 2);
 		return gp;
 	}
 	
@@ -311,8 +331,50 @@ public class Main extends Application {
 			
 			String msg = "/me braces themself\n" + 
 					"&{template:default} {{name= defences}} ";
-			
+			msg += acString() + saveString();
 			txaDefDisplay.setText(msg);
+		}
+		
+		private String acString() {
+			String msg = "{{AC = [[10";
+			String prof = cbArmorProf.getValue();
+			int lvl = spnLevel.getValue();
+			int bonus = spnACBon.getValue();
+			int acDex = Math.min(spnDex.getValue(), spnMaxDex.getValue());
+			msg += " + " + lvl + "[level]";
+			msg += " + " + prof;
+			msg += " + " + bonus + "[Item]";
+			msg += " + " + acDex + "[Dex]";
+			msg += " + ?{Shield|0}[Shield]";
+			
+			return msg + "]] }}";
+		}
+		
+		private String saveString() {
+			int bonus = spnSaveBon.getValue();
+			int con = spnCon.getValue();
+			int dex = spnDex.getValue();
+			int wis = spnWis.getValue();
+			int lvl = spnLevel.getValue();
+			String msg = "{{Fort = [[1d20";
+			msg += " + " + lvl + "[level]";
+			msg += " + " + cbFortProf.getValue();
+			msg += " + " + con + "[Con]";
+			msg += " + " + bonus + "[Item]";
+			
+			msg += "]] }}{{Reflex = [[1d20";
+			msg += " + " + lvl + "[level]";
+			msg += " + " + cbRefProf.getValue();
+			msg += " + " + dex + "[Dex]";
+			msg += " + " + bonus + "[Item]";
+			
+			msg += "]] }}{{Will = [[1d20";
+			msg += " + " + lvl + "[level]";
+			msg += " + " + cbWillProf.getValue();
+			msg += " + " + wis + "[Wis]";
+			msg += " + " + bonus + "[Item]";
+			
+			return msg + "]] }}";
 		}
 	}
 	
