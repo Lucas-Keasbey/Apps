@@ -26,8 +26,6 @@ import javafx.scene.layout.Pane;
 
 public class Main extends Application {
 	/* TODO 
-	 * 	add save Proficiency selection
-	 * 	finish generate Defense action event
 	 * 	add weapon attack tab
 	 */
 	
